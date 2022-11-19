@@ -4,16 +4,14 @@
 #define DEFAULTSIZE 30
 #define COL 1280//横向长度
 #define RAW 720//纵向长度
-#define DIS 16
+#define DIS 15
 #define PI 3.1415926
 #
 #include<easyx.h>
-#include<list>
 #include<cmath>
 #include<vector>
-using std::list;
 using std::vector;
-
+using std::pair;
 
 static IMAGE bg;
 
@@ -80,6 +78,7 @@ public:
 
 class BODY : public SNAKE_BODY{
 public:
+	int now;//迭代器的替代品，指向上一个经过的节点***在SNAKE中初始化***
 	bodymode mode;
 	static const int radius = size / 2;
 public:
@@ -94,25 +93,20 @@ public:
 	void putbody();
 };
 
-enum opr {//蛇运动记录枚举
-	ADDX, SUBX, ADDY, SUBY
-};
-
 class SNAKE {
 private:
 	HEAD head;
-	list<BODY> snake;
+	vector<BODY> snake;
 	int speed;
 	int length;
-	vector<opr> history;//存储蛇运动的历史记录
+	vector<pair<direct,POINT>> history;//存储蛇运动的历史记录
 public:
 	SNAKE(TRSP_IMAGE up, TRSP_IMAGE left, TRSP_IMAGE right, TRSP_IMAGE down);
 	inline int getlength() { return length; }
 	void drawsnake();
 	void move();
-	inline void turn(direct d) {
-		head.turn(d);
-	}
+	void turn(direct d);
+	void addlength();
 };
 
 #endif

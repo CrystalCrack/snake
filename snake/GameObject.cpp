@@ -53,13 +53,18 @@ void BODY::putbody() {
 
 
 SNAKE::SNAKE(TRSP_IMAGE up, TRSP_IMAGE left, TRSP_IMAGE right, TRSP_IMAGE down):head(up,left,right,down,0,0) {
+	snake.reserve(1000000);
 	length = 5;
 	speed = 5;
 	BODY body[4];
+
 	for (int i = 0; i < 4; i++) {
 		body[i] = BODY(i+1,- SNAKE_BODY::distance * (i+1),0);
 		snake.push_back(body[i]);
-		history.push_back(ADDX);
+	}
+	history.push_back(std::make_pair(head.dir, body[3].xy));
+	for (auto x = snake.begin(); x != snake.end();x++) {
+		x->now = 0;
 	}
 }
 
@@ -72,58 +77,132 @@ void SNAKE::drawsnake() {
 	head.puthead();
 }
 
+void SNAKE::turn(direct dir) {
+	head.turn(dir);
+	switch (dir) {
+	case UP:
+		history.push_back(std::make_pair(UP, head.xy));//记录下转头的方向和坐标
+		break;
+	case DOWN:
+		history.push_back(std::make_pair(DOWN, head.xy));
+		break;
+	case RIGHT:
+		history.push_back(std::make_pair(RIGHT, head.xy));
+		break;
+	case LEFT:
+		history.push_back(std::make_pair(LEFT, head.xy));
+	}
+}
+
 void SNAKE::move() {
 	switch (head.dir) {
 	case UP:
 		head.xy.y += speed;
-		history.insert(history.begin(), ADDY);
 		break;
 	case DOWN:
 		head.xy.y -= speed;
-		history.insert(history.begin(), SUBY);
 		break;
 	case RIGHT:
 		head.xy.x += speed;
-		history.insert(history.begin(), ADDX);
 		break;
 	case LEFT:
 		head.xy.x -= speed;
-		history.insert(history.begin(), SUBX);
 		break;
 	}
 	head.LT.x = head.xy.x - head.size / 2;
 	head.LT.y = head.xy.y - head.size / 2;
-	//计算角度
-	long double alpha;
-	if (head.xy.x == snake.front().xy.x) {
-		if (head.xy.y > snake.front().xy.y)
-			alpha = PI / 2;
-		else 
-			alpha = -PI / 2;
-	}else{
-		alpha = atan(static_cast<long double>(head.xy.y - snake.front().xy.y) / static_cast<long double>(head.xy.x - snake.front().xy.x));
-	}
-	long double x = sqrt(pow(head.xy.y - snake.front().xy.y, 2) + pow(head.xy.x - snake.front().xy.x, 2));
-	x -= SNAKE_BODY::distance;
-	snake.front().xy.x += x * cos(alpha);
-	snake.front().xy.y += x * sin(alpha);
-	auto j = snake.begin();
-	auto i = j++;
-	while (j != snake.end()) {//迭代移动每一个身体
-		long double beta;
-		if (i->xy.x == j->xy.x) {
-			if (i->xy.y == j->xy.y)
-				beta = PI / 2;
-			else
-				beta = -PI / 2;
+	auto i = snake.begin();
+	while (i != snake.end()) {//迭代移动每一个身体
+		int p = speed;
+		A:
+		auto x = history.begin()+i->now;
+		x++;
+		if (x == history.end()) {//没有下一个节点
+			switch (history[i->now].first) {
+			case RIGHT:
+				i->xy.x += p;
+				break;
+			case LEFT:
+				i->xy.x -= p;
+				break;
+			case UP:
+				i->xy.y += p;
+				break;
+			case DOWN:
+				i->xy.y -= p;
+				break;
+			}
 		}
-		else{
-			beta = atan(static_cast<long double>(i->xy.y - j->xy.y) / static_cast<long double>(i->xy.x - j->xy.x));
+		else {//有下一个节点
+			switch (history[i->now].first) {
+			case RIGHT:
+				if (i->xy.x + p >= x->second.x) {//移动一个速度之后超过节点
+					p = p-(x->second.x - i->xy.x);//剩余的距离
+					i->xy.x = x->second.x;//移动到该节点
+					i->now++;
+					goto A;
+				}else
+					i->xy.x += p;
+				break;
+			case LEFT:
+				if (i->xy.x - p <= x->second.x) {//移动一个速度之后超过节点
+					p = p - (i->xy.x - x->second.x);//剩余的距离
+					i->xy.x = x->second.x;//移动到该节点
+					i->now++;
+					goto A;
+				}
+				else
+					i->xy.x -= p;
+				break;
+			case UP:
+				if (i->xy.y + p >= x->second.y) {//移动一个速度之后超过节点
+					p = p - (x->second.y - i->xy.y);//剩余的距离
+					i->xy.y = x->second.y;//移动到该节点
+					i->now++;//移动迭代器到下一个节点
+					goto A;
+				}
+				else
+					i->xy.y += p;
+				break;
+			case DOWN:
+				if (i->xy.y - p <= x->second.y) {//移动一个速度之后超过节点
+					p = p - (i->xy.y - x->second.y);//剩余的距离
+					i->xy.y = x->second.y;//移动到该节点
+					i->now++;//移动迭代器到下一个节点
+					goto A;
+				}
+				else
+					i->xy.y -= p;
+			}
 		}
-		long double p = sqrt(pow(i->xy.y - j->xy.y, 2) + pow(i->xy.x - j->xy.x, 2));
-		p -= SNAKE_BODY::distance;
-		j->xy.x += p * cos(beta);
-		j->xy.y += p * sin(beta);
-		i = j++;
+		i++;
 	}
+	if (snake[snake.size() - 1].now == 1) {//最后一位也越过了第一个节点
+		history.erase(history.begin());//删除第一个节点
+		for (auto m = snake.begin(); m != snake.end(); m++) {
+			m->now--;
+		}
+	}
+}
+
+void SNAKE::addlength() {
+	length++;
+	BODY body;
+	switch (history[snake[length - 3].now].first) {//控制坐标
+	case UP:
+		body = BODY(length - 1, snake[length - 3].xy.x, snake[length - 3].xy.y - SNAKE_BODY::distance);
+		break;
+	case DOWN:
+		body = BODY(length - 1, snake[length - 3].xy.x, snake[length - 3].xy.y + SNAKE_BODY::distance);
+		break;
+	case LEFT:
+		body = BODY(length - 1, snake[length - 3].xy.x + SNAKE_BODY::distance, snake[length - 3].xy.y);
+		break;
+	case RIGHT:
+		body = BODY(length - 1, snake[length - 3].xy.x - SNAKE_BODY::distance, snake[length - 3].xy.y);
+		break;
+	}
+	//控制迭代器
+	body.now = 0;
+	snake.push_back(body);
 }

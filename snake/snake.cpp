@@ -31,6 +31,36 @@ int main() {
 	TRSP_IMAGE img3(origin, mask);
 	TRSP_IMAGE img4(origin, mask);
 	SNAKE s(img1, img2, img3, img4);
+	for (int i = 0; i < 20; i++) {
+		s.addlength();
+	}
+	while (1) {
+		ExMessage m;
+		if(peekmessage(&m, EX_KEY))
+			if(m.message=WM_KEYDOWN)
+			switch (m.vkcode) {
+			case 0x57:
+				s.turn(UP);
+				break;
+			case 0x53:
+				s.turn(DOWN);
+				break;
+			case 0x41:
+				s.turn(LEFT);
+				break;
+			case 0x44:
+				s.turn(RIGHT);
+				break;
+			}
+		s.move();
+		BeginBatchDraw();
+		cleardevice();
+		draw(s);
+		FlushBatchDraw();
+		Sleep(10);
+	}
+
+	/*
 	for (int i = 0; i < 100; i++) {
 		cleardevice();
 		BeginBatchDraw();
@@ -40,6 +70,8 @@ int main() {
 		Sleep(10);
 	}
 	s.turn(UP);
+	s.addlength();
+	s.addlength();
 	for (int i = 0; i < 30; i++) {
 		cleardevice();
 		BeginBatchDraw();
@@ -49,6 +81,8 @@ int main() {
 		Sleep(10);
 	}
 	s.turn(LEFT);
+	s.addlength();
+	s.addlength();
 	for (int i = 0; i < 100; i++) {
 		cleardevice();
 		BeginBatchDraw();
@@ -58,6 +92,8 @@ int main() {
 		Sleep(10);
 	}
 	s.turn(DOWN);
+	s.addlength();
+	s.addlength();
 	for (int i = 0; i < 30; i++) {
 		cleardevice();
 		BeginBatchDraw();
@@ -67,6 +103,7 @@ int main() {
 		Sleep(10);
 	}
 	getchar();
+	*/
 	//s.drawsnake();
 	/*
 	IMAGE BG, IMG1, IMG2;
