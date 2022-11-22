@@ -56,6 +56,9 @@ int main() {
 	start = clock();
 	
 	addapple();
+	s.addlength();
+	s.addlength();
+	s.addlength();
 
 	while (1) {
 		ExMessage m;
@@ -63,15 +66,23 @@ int main() {
 			if(m.message==WM_KEYDOWN)
 			switch (m.vkcode) {
 			case 0x57:
+				if (s.getdir() == DOWN)
+					break;
 				s.turn(UP);
 				break;
 			case 0x53:
+				if (s.getdir() == UP)
+					break;
 				s.turn(DOWN);
 				break;
 			case 0x41:
+				if (s.getdir() == RIGHT)
+					break;
 				s.turn(LEFT);
 				break;
 			case 0x44:
+				if (s.getdir() == LEFT)
+					break;
 				s.turn(RIGHT);
 				break;
 			}
@@ -89,61 +100,4 @@ int main() {
 		draw(s);
 		FlushBatchDraw();
 	}
-
-	/*
-	for (int i = 0; i < 100; i++) {
-		cleardevice();
-		BeginBatchDraw();
-		draw(s);
-		FlushBatchDraw();
-		s.move();
-		Sleep(10);
-	}
-	s.turn(UP);
-	s.addlength();
-	s.addlength();
-	for (int i = 0; i < 30; i++) {
-		cleardevice();
-		BeginBatchDraw();
-		draw(s);
-		FlushBatchDraw();
-		s.move();
-		Sleep(10);
-	}
-	s.turn(LEFT);
-	s.addlength();
-	s.addlength();
-	for (int i = 0; i < 100; i++) {
-		cleardevice();
-		BeginBatchDraw();
-		draw(s);
-		FlushBatchDraw();
-		s.move();
-		Sleep(10);
-	}
-	s.turn(DOWN);
-	s.addlength();
-	s.addlength();
-	for (int i = 0; i < 30; i++) {
-		cleardevice();
-		BeginBatchDraw();
-		draw(s);
-		FlushBatchDraw();
-		s.move();
-		Sleep(10);
-	}
-	getchar();
-	*/
-	//s.drawsnake();
-	/*
-	IMAGE BG, IMG1, IMG2;
-	loadimage(&BG, _T(".\\background.jpg"), 1660, 900);
-	loadimage(&IMG1, _T(".\\head1.png"), 60, 60);
-	loadimage(&IMG2, _T(".\\head2.png"), 60, 60);
-	TRSP_IMAGE image(IMG1, IMG2);
-	initgraph(1660, 900);
-	putimage(0, 0, &BG);
-	image.drawimage(800,500);
-	getchar();
-	*/
 }

@@ -6,8 +6,6 @@ bool APPLE::isinitial;
 int APPLE::size = DEFAULTSIZE;
 TRSP_IMAGE APPLE::image;
 
-
-
 void TRSP_IMAGE::drawimage(int x, int y) {
 	if (!init) {//没有初始化过
 		SetWorkingImage(&ORIGIN);//将原图设置为工作平面
@@ -46,9 +44,33 @@ void HEAD::turn(direct d) {
 }
 
 void HEAD::puthead() {
-	c_img->drawimage(LT.x, LT.y);
+	c_img->drawimage(LB.x, LB.y);
+	if (LB.x < -COL / 2 || LB.x + size > COL / 2 || LB.y < -RAW / 2 || LB.y + size > RAW / 2) {
+		POINT p;
+		int initx = 0, inity = 0;
+		if (LB.x < -COL / 2) {
+			p.x = LB.x + COL;
+			initx = 1;
+		}
+		else if (LB.x + size > COL / 2) {
+			p.x = LB.x - COL;
+			initx = 1;
+		}
+		if (LB.y < -RAW / 2) {
+			p.y = LB.y + RAW;
+			inity = 1;
+		}
+		else if (LB.y + size > RAW / 2) {
+			p.y = LB.y - RAW;
+			inity = 1;
+		}
+		if (!initx)
+			p.x = LB.x;
+		if (!inity)
+			p.y = LB.y;
+		c_img->drawimage(p.x, p.y);
+	}
 }
-
 
 void BODY::putbody() {
 	switch (mode) {//根据身体类型选择不同的颜色
@@ -62,9 +84,32 @@ void BODY::putbody() {
 	}
 	SetWorkingImage(NULL);//切换工作平面为背景
 	fillcircle(xy.x, xy.y, radius);
+	if (xy.x - radius<-COL / 2 || xy.x + radius>COL / 2 || xy.y - radius<-RAW / 2 || xy.y + radius>RAW / 2) {
+		POINT p;
+		bool initx = 0, inity = 0;
+		if (xy.x - radius < -COL / 2) {
+			p.x = xy.x + COL;
+			initx = 1;
+		}
+		else if (xy.x + radius > COL / 2) {
+			p.x = xy.x - COL;
+			initx = 1;
+		}
+		if (xy.y - radius < -RAW / 2) {
+			p.y = xy.y + RAW;
+			inity = 1;
+		}
+		else if (xy.y + radius > RAW / 2) {
+			p.y = xy.y - RAW;
+			inity = 1;
+		}
+		if (!initx)
+			p.x = xy.x;
+		else if (!inity)
+			p.y = xy.y;
+		fillcircle(p.x, p.y, radius);
+	}
 }
-
-
 
 SNAKE::SNAKE(TRSP_IMAGE up, TRSP_IMAGE left, TRSP_IMAGE right, TRSP_IMAGE down):head(up,left,right,down,0,0) {
 	snake.reserve(1000000);
@@ -124,15 +169,15 @@ void SNAKE::move() {
 		break;
 	}
 	if (head.xy.x > COL / 2)
-		head.xy.x = -COL / 2;
+		head.xy.x -= COL;
 	else if (head.xy.x < -COL / 2)
-		head.xy.x = COL / 2;
+		head.xy.x += COL;
 	if (head.xy.y > RAW / 2)
-		head.xy.y = -RAW / 2;
+		head.xy.y -= RAW;
 	else if (head.xy.y < -RAW / 2)
-		head.xy.y = RAW / 2;
-	head.LT.x = head.xy.x - head.size / 2;
-	head.LT.y = head.xy.y - head.size / 2;
+		head.xy.y += RAW;
+	head.LB.x = head.xy.x - head.size / 2;
+	head.LB.y = head.xy.y - head.size / 2;
 	auto i = snake.begin();
 	while (i != snake.end()) {//迭代移动每一个身体
 		int p = speed;
@@ -156,10 +201,12 @@ void SNAKE::move() {
 			}
 		}
 		else {//有下一个节点
+			int d;
 			switch (history[i->now].first) {
 			case RIGHT:
-				if (i->xy.x + p >= x->second.x) {//移动一个速度之后超过节点
-					p = p-(x->second.x - i->xy.x);//剩余的距离
+				d = i->xy.x < x->second.x ? x->second.x - i->xy.x : COL - (i->xy.x - x->second.x);
+				if (p >= d) {//移动一个速度之后超过节点
+					p -= d;//剩余的距离
 					i->xy.x = x->second.x;//移动到该节点
 					i->now++;
 					goto A;
@@ -167,8 +214,9 @@ void SNAKE::move() {
 					i->xy.x += p;
 				break;
 			case LEFT:
-				if (i->xy.x - p <= x->second.x) {//移动一个速度之后超过节点
-					p = p - (i->xy.x - x->second.x);//剩余的距离
+				d = i->xy.x > x->second.x ? i->xy.x - x->second.x : COL - (x->second.x - i->xy.x);
+				if (p>=d) {//移动一个速度之后超过节点
+					p -= d;//剩余的距离
 					i->xy.x = x->second.x;//移动到该节点
 					i->now++;
 					goto A;
@@ -177,8 +225,9 @@ void SNAKE::move() {
 					i->xy.x -= p;
 				break;
 			case UP:
-				if (i->xy.y + p >= x->second.y) {//移动一个速度之后超过节点
-					p = p - (x->second.y - i->xy.y);//剩余的距离
+				d = i->xy.y < x->second.y ? x->second.y - i->xy.y : RAW - (i->xy.y - x->second.y);
+				if (p>=d) {//移动一个速度之后超过节点
+					p -= d;//剩余的距离
 					i->xy.y = x->second.y;//移动到该节点
 					i->now++;//移动迭代器到下一个节点
 					goto A;
@@ -187,8 +236,9 @@ void SNAKE::move() {
 					i->xy.y += p;
 				break;
 			case DOWN:
-				if (i->xy.y - p <= x->second.y) {//移动一个速度之后超过节点
-					p = p - (i->xy.y - x->second.y);//剩余的距离
+				d = i->xy.y > x->second.y ? i->xy.y - x->second.y : RAW - (x->second.y - i->xy.y);
+				if (p>=d) {//移动一个速度之后超过节点
+					p -= d;//剩余的距离
 					i->xy.y = x->second.y;//移动到该节点
 					i->now++;//移动迭代器到下一个节点
 					goto A;
@@ -198,13 +248,13 @@ void SNAKE::move() {
 			}
 		}
 		if (i->xy.x > COL / 2)
-			i->xy.x = -COL / 2;
+			i->xy.x -= COL;
 		else if (i->xy.x < -COL / 2)
-			i->xy.x = COL / 2;
+			i->xy.x += COL;
 		if (i->xy.y > RAW / 2)
-			i->xy.y = -RAW / 2;
+			i->xy.y -= RAW;
 		else if (i->xy.y < -RAW / 2)
-			i->xy.y = RAW / 2;
+			i->xy.y += RAW;
 		i++;
 	}
 	if (snake[snake.size() - 1].now == 1) {//最后一位也越过了第一个节点
@@ -255,7 +305,7 @@ bool SNAKE::iseaten() {
 void putapple() {
 	if (APPLE::isinitial) {
 		for (auto i = APPLE::apple.begin(); i != APPLE::apple.end(); i++) {
-			i->second.image.drawimage(i->second.LT.x, i->second.LT.y);
+			i->second.image.drawimage(i->second.LB.x, i->second.LB.y);
 		}
 	}
 }

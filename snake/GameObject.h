@@ -59,7 +59,7 @@ public:
 class HEAD :public SNAKE_BODY {
 friend class SNAKE;
 protected:
-	POINT LT;//left top
+	POINT LB;//left bottom
 	direct dir;//蛇头的方向
 	TRSP_IMAGE IMG_UPS;//UPSIDE
 	TRSP_IMAGE IMG_LEFT;
@@ -68,11 +68,11 @@ protected:
 	TRSP_IMAGE* c_img;//current image
 
 public:
-	HEAD() :LT({ 0,0 }),c_img(nullptr),dir(RIGHT),SNAKE_BODY({size/2,size/2}) {}
+	HEAD() :LB({ 0,0 }),c_img(nullptr),dir(RIGHT),SNAKE_BODY({size/2,size/2}) {}
 	inline HEAD(TRSP_IMAGE& up, TRSP_IMAGE& left, TRSP_IMAGE& right, TRSP_IMAGE& usd,int x,int y) :
 		IMG_UPS(up), IMG_LEFT(left), IMG_RIGHT(right), IMG_USD(usd), c_img(&IMG_RIGHT),dir(RIGHT),SNAKE_BODY({x,y}) {
 		xy = { x,y };
-		LT = { x - size / 2,y - size / 2 };
+		LB = { x - size / 2,y - size / 2 };
 	}
 	inline direct getdir() { return dir; };
 	void turn(direct d);
@@ -112,6 +112,9 @@ public:
 	void turn(direct d);
 	void addlength();
 	bool iseaten();
+	inline direct getdir() {
+		return head.getdir();
+	}
 };
 
 
@@ -123,14 +126,14 @@ private:
 	static bool isinitial;
 	static int size;
 	static TRSP_IMAGE image;
-	POINT LT;
+	POINT LB;
 public:
 	friend void putapple();
 	friend void addapple();
 	friend void addapple(POINT pos);
 	inline APPLE(POINT pos) :GameObject(pos) {
 		quantity++;
-		LT = { xy.x - size / 2,xy.y - size / 2 };
+		LB = { xy.x - size / 2,xy.y - size / 2 };
 	};
 	static void initialize(TRSP_IMAGE& img);
 };
