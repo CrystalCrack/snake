@@ -30,11 +30,12 @@ public:
 class GameObject
 {
 protected:
-	static const int size = DEFAULTSIZE;//默认大小
+	int size = DEFAULTSIZE;//默认大小
 	POINT xy;//圆心坐标
 public:
 	inline GameObject():xy({0,0}){}
 	inline GameObject(POINT in_xy) :xy(in_xy) {}
+	friend bool ishit(GameObject obj1, GameObject obj2);
 };
 
 enum direct {//方向枚举
@@ -50,7 +51,7 @@ class SNAKE_BODY : public GameObject{
 friend class SNAKE;
 public:
 	static const int distance = DIS;//间距
-	inline SNAKE_BODY(){};
+	inline SNAKE_BODY(POINT pos):GameObject(pos) {};
 };
 
 class HEAD :public SNAKE_BODY {
@@ -65,9 +66,9 @@ protected:
 	TRSP_IMAGE* c_img;//current image
 
 public:
-	HEAD() :LT({ 0,0 }),c_img(nullptr),dir(RIGHT) {}
+	HEAD() :LT({ 0,0 }),c_img(nullptr),dir(RIGHT),SNAKE_BODY({size/2,size/2}) {}
 	inline HEAD(TRSP_IMAGE& up, TRSP_IMAGE& left, TRSP_IMAGE& right, TRSP_IMAGE& usd,int x,int y) :
-		IMG_UPS(up), IMG_LEFT(left), IMG_RIGHT(right), IMG_USD(usd), c_img(&IMG_RIGHT),dir(RIGHT) {
+		IMG_UPS(up), IMG_LEFT(left), IMG_RIGHT(right), IMG_USD(usd), c_img(&IMG_RIGHT),dir(RIGHT),SNAKE_BODY({x,y}) {
 		xy = { x,y };
 		LT = { x - size / 2,y - size / 2 };
 	}
@@ -80,14 +81,14 @@ class BODY : public SNAKE_BODY{
 public:
 	int now;//迭代器的替代品，指向上一个经过的节点***在SNAKE中初始化***
 	bodymode mode;
-	static const int radius = size / 2;
+	int radius;
 public:
 	/*@param
 	* mde	奇数为深色,偶数为浅色
 	*/
-	BODY() :mode(DEEP) {};
-	inline BODY(unsigned int mde,int x,int y){
-		xy = { x,y };
+	BODY() :mode(DEEP),SNAKE_BODY({0,0}) {};
+	inline BODY(unsigned int mde,int x,int y):SNAKE_BODY({x,y}) {
+		radius = size / 2;
 		mode = mde % 2 == 0 ? SHALLOW : DEEP;
 	};
 	void putbody();
@@ -107,6 +108,18 @@ public:
 	void move();
 	void turn(direct d);
 	void addlength();
+};
+
+class BONUS : public GameObject{//增益类
+protected:
+	TRSP_IMAGE object_basic;//基本形态
+public:
+	inline BONUS(TRSP_IMAGE &img,POINT pos) :object_basic(img),GameObject(pos) {}
+};
+
+class APPLE : BONUS {
+public:
+	inline APPLE(TRSP_IMAGE& img,POINT pos) :BONUS(img,pos){}
 };
 
 #endif

@@ -7,7 +7,7 @@
 */
 
 
-//#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" ) // 设置入口地址
+#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" ) // 设置入口地址
 #include<easyx.h>
 #include<cstdio>
 #include"GameObject.h"
@@ -18,26 +18,37 @@ void draw(SNAKE s) {
 }
 
 int main() {
+	int a[][4] = { 0,0 };
+
 	initgraph(COL, RAW);
 	loadimage(&bg, _T(".\\images\\background.jpg"), COL, RAW);
-	setorigin(COL / 2, RAW / 2);//设置逻辑坐标原点
 
+	setorigin(COL / 2, RAW / 2);//设置逻辑坐标原点
 	setaspectratio(1, -1);
-	IMAGE origin, mask;
-	loadimage(&origin, _T(".\\images\\head_o.png"), DEFAULTSIZE, DEFAULTSIZE);
-	loadimage(&mask, _T(".\\images\\head_m.png"), DEFAULTSIZE, DEFAULTSIZE);
-	TRSP_IMAGE img1(origin, mask);
-	TRSP_IMAGE img2(origin, mask);
-	TRSP_IMAGE img3(origin, mask);
-	TRSP_IMAGE img4(origin, mask);
-	SNAKE s(img1, img2, img3, img4);
+
+	IMAGE o_u,o_d,o_r,o_l,m_u,m_d,m_r,m_l;
+
+	loadimage(&o_u, _T(".\\images\\head_o_u.png"), DEFAULTSIZE, DEFAULTSIZE);
+	loadimage(&m_u, _T(".\\images\\head_m_u.png"), DEFAULTSIZE, DEFAULTSIZE);
+	loadimage(&o_d, _T(".\\images\\head_o_d.png"), DEFAULTSIZE, DEFAULTSIZE);
+	loadimage(&m_d, _T(".\\images\\head_m_d.png"), DEFAULTSIZE, DEFAULTSIZE);
+	loadimage(&o_r, _T(".\\images\\head_o_r.png"), DEFAULTSIZE, DEFAULTSIZE);
+	loadimage(&m_r, _T(".\\images\\head_m_r.png"), DEFAULTSIZE, DEFAULTSIZE);
+	loadimage(&o_l, _T(".\\images\\head_o_l.png"), DEFAULTSIZE, DEFAULTSIZE);
+	loadimage(&m_l, _T(".\\images\\head_m_l.png"), DEFAULTSIZE, DEFAULTSIZE);
+
+	TRSP_IMAGE up(o_u, m_u);
+	TRSP_IMAGE left(o_l, m_l);
+	TRSP_IMAGE right(o_r, m_r);
+	TRSP_IMAGE down(o_d, m_d);
+	SNAKE s(up, left, right, down);
 	for (int i = 0; i < 20; i++) {
 		s.addlength();
 	}
 	while (1) {
 		ExMessage m;
 		if(peekmessage(&m, EX_KEY))
-			if(m.message=WM_KEYDOWN)
+			if(m.message==WM_KEYDOWN)
 			switch (m.vkcode) {
 			case 0x57:
 				s.turn(UP);

@@ -12,6 +12,13 @@ void TRSP_IMAGE::drawimage(int x, int y) {
 	putimage(x, y, &ORIGIN, SRCPAINT);//绘制叠加过后的原图
 }
 
+bool ishit(GameObject obj1, GameObject obj2) {
+	double dis = pow(obj1.xy.x - obj2.xy.x, 2) + pow(obj1.xy.y - obj2.xy.y, 2);
+	if (dis < (obj1.size + obj2.size) / 2)
+		return true;
+	else
+		return false;
+}
 
 void HEAD::turn(direct d) {
 	dir = d;
@@ -55,7 +62,7 @@ void BODY::putbody() {
 SNAKE::SNAKE(TRSP_IMAGE up, TRSP_IMAGE left, TRSP_IMAGE right, TRSP_IMAGE down):head(up,left,right,down,0,0) {
 	snake.reserve(1000000);
 	length = 5;
-	speed = 5;
+	speed = 10;
 	BODY body[4];
 
 	for (int i = 0; i < 4; i++) {
