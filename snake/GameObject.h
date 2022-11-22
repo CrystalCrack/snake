@@ -10,14 +10,16 @@
 #include<easyx.h>
 #include<cmath>
 #include<vector>
+#include<map>
 using std::vector;
 using std::pair;
+using std::map;
 
 static IMAGE bg;
 
 class TRSP_IMAGE {//transparent image
 private:
-	bool init;
+	bool init = 0;
 	IMAGE ORIGIN;
 	IMAGE MASK;
 public:
@@ -78,6 +80,7 @@ public:
 };
 
 class BODY : public SNAKE_BODY{
+	friend class SNAKE;
 public:
 	int now;//迭代器的替代品，指向上一个经过的节点***在SNAKE中初始化***
 	bodymode mode;
@@ -86,8 +89,8 @@ public:
 	/*@param
 	* mde	奇数为深色,偶数为浅色
 	*/
-	BODY() :mode(DEEP),SNAKE_BODY({0,0}) {};
-	inline BODY(unsigned int mde,int x,int y):SNAKE_BODY({x,y}) {
+	BODY() :mode(DEEP),SNAKE_BODY({0,0}),now(0),radius(size/2) {};
+	inline BODY(unsigned int mde,int x,int y):SNAKE_BODY({x,y}),now(0) {
 		radius = size / 2;
 		mode = mde % 2 == 0 ? SHALLOW : DEEP;
 	};
@@ -108,18 +111,34 @@ public:
 	void move();
 	void turn(direct d);
 	void addlength();
+	bool iseaten();
 };
 
-class BONUS : public GameObject{//增益类
-protected:
-	TRSP_IMAGE object_basic;//基本形态
+
+class APPLE : GameObject {
+	friend class SNAKE;
+private:
+	static int quantity;//存储苹果总数
+	static vector<pair<POINT, APPLE>> apple;//存储所有苹果的点和位置
+	static bool isinitial;
+	static int size;
+	static TRSP_IMAGE image;
+	POINT LT;
 public:
-	inline BONUS(TRSP_IMAGE &img,POINT pos) :object_basic(img),GameObject(pos) {}
+	friend void putapple();
+	friend void addapple();
+	friend void addapple(POINT pos);
+	inline APPLE(POINT pos) :GameObject(pos) {
+		quantity++;
+		LT = { xy.x - size / 2,xy.y - size / 2 };
+	};
+	static void initialize(TRSP_IMAGE& img);
 };
 
-class APPLE : BONUS {
-public:
-	inline APPLE(TRSP_IMAGE& img,POINT pos) :BONUS(img,pos){}
-};
+void putapple();
+void addapple();
+void addapple(POINT pos);
+
+
 
 #endif

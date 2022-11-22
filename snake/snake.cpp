@@ -11,9 +11,11 @@
 #include<easyx.h>
 #include<cstdio>
 #include"GameObject.h"
+#include <ctime>
 
 void draw(SNAKE s) {
 	putimage(-COL / 2, -RAW / 2, &bg);
+	putapple();
 	s.drawsnake();
 }
 
@@ -27,6 +29,7 @@ int main() {
 	setaspectratio(1, -1);
 
 	IMAGE o_u,o_d,o_r,o_l,m_u,m_d,m_r,m_l;
+	IMAGE apple_m, apple_o;
 
 	loadimage(&o_u, _T(".\\images\\head_o_u.png"), DEFAULTSIZE, DEFAULTSIZE);
 	loadimage(&m_u, _T(".\\images\\head_m_u.png"), DEFAULTSIZE, DEFAULTSIZE);
@@ -36,15 +39,24 @@ int main() {
 	loadimage(&m_r, _T(".\\images\\head_m_r.png"), DEFAULTSIZE, DEFAULTSIZE);
 	loadimage(&o_l, _T(".\\images\\head_o_l.png"), DEFAULTSIZE, DEFAULTSIZE);
 	loadimage(&m_l, _T(".\\images\\head_m_l.png"), DEFAULTSIZE, DEFAULTSIZE);
+	loadimage(&apple_m, _T(".\\images\\craw_m.png"), DEFAULTSIZE, DEFAULTSIZE);
+	loadimage(&apple_o, _T(".\\images\\craw_o.png"), DEFAULTSIZE, DEFAULTSIZE);
 
 	TRSP_IMAGE up(o_u, m_u);
 	TRSP_IMAGE left(o_l, m_l);
 	TRSP_IMAGE right(o_r, m_r);
 	TRSP_IMAGE down(o_d, m_d);
+	TRSP_IMAGE apple(apple_o, apple_m);
+
+	APPLE::initialize(apple);
+
 	SNAKE s(up, left, right, down);
-	for (int i = 0; i < 20; i++) {
-		s.addlength();
-	}
+
+	clock_t start,end;
+	start = clock();
+	
+	addapple();
+
 	while (1) {
 		ExMessage m;
 		if(peekmessage(&m, EX_KEY))
@@ -64,11 +76,18 @@ int main() {
 				break;
 			}
 		s.move();
+		if (s.iseaten())
+			addapple();
+		end = clock();
+		long t = static_cast<long double>(end - start) / CLOCKS_PER_SEC * 1000;
+		start = end;
+		if (t < 10) {
+			Sleep(10 - t);
+		}
 		BeginBatchDraw();
 		cleardevice();
 		draw(s);
 		FlushBatchDraw();
-		Sleep(10);
 	}
 
 	/*

@@ -1,5 +1,12 @@
 #include "GameObject.h"
 
+int APPLE::quantity;//存储苹果总数
+vector<pair<POINT, APPLE>> APPLE::apple;//存储所有苹果的点和位置
+bool APPLE::isinitial;
+int APPLE::size = DEFAULTSIZE;
+TRSP_IMAGE APPLE::image;
+
+
 
 void TRSP_IMAGE::drawimage(int x, int y) {
 	if (!init) {//没有初始化过
@@ -13,7 +20,7 @@ void TRSP_IMAGE::drawimage(int x, int y) {
 }
 
 bool ishit(GameObject obj1, GameObject obj2) {
-	double dis = pow(obj1.xy.x - obj2.xy.x, 2) + pow(obj1.xy.y - obj2.xy.y, 2);
+	double dis = sqrt(pow(obj1.xy.x - obj2.xy.x, 2) + pow(obj1.xy.y - obj2.xy.y, 2));
 	if (dis < (obj1.size + obj2.size) / 2)
 		return true;
 	else
@@ -62,7 +69,7 @@ void BODY::putbody() {
 SNAKE::SNAKE(TRSP_IMAGE up, TRSP_IMAGE left, TRSP_IMAGE right, TRSP_IMAGE down):head(up,left,right,down,0,0) {
 	snake.reserve(1000000);
 	length = 5;
-	speed = 10;
+	speed = 5;
 	BODY body[4];
 
 	for (int i = 0; i < 4; i++) {
@@ -116,6 +123,14 @@ void SNAKE::move() {
 		head.xy.x -= speed;
 		break;
 	}
+	if (head.xy.x > COL / 2)
+		head.xy.x = -COL / 2;
+	else if (head.xy.x < -COL / 2)
+		head.xy.x = COL / 2;
+	if (head.xy.y > RAW / 2)
+		head.xy.y = -RAW / 2;
+	else if (head.xy.y < -RAW / 2)
+		head.xy.y = RAW / 2;
 	head.LT.x = head.xy.x - head.size / 2;
 	head.LT.y = head.xy.y - head.size / 2;
 	auto i = snake.begin();
@@ -182,6 +197,14 @@ void SNAKE::move() {
 					i->xy.y -= p;
 			}
 		}
+		if (i->xy.x > COL / 2)
+			i->xy.x = -COL / 2;
+		else if (i->xy.x < -COL / 2)
+			i->xy.x = COL / 2;
+		if (i->xy.y > RAW / 2)
+			i->xy.y = -RAW / 2;
+		else if (i->xy.y < -RAW / 2)
+			i->xy.y = RAW / 2;
 		i++;
 	}
 	if (snake[snake.size() - 1].now == 1) {//最后一位也越过了第一个节点
@@ -209,7 +232,54 @@ void SNAKE::addlength() {
 		body = BODY(length - 1, snake[length - 3].xy.x - SNAKE_BODY::distance, snake[length - 3].xy.y);
 		break;
 	}
-	//控制迭代器
-	body.now = 0;
 	snake.push_back(body);
 }
+
+bool SNAKE::iseaten() {
+	auto i = APPLE::apple.begin();
+	while (i != APPLE::apple.end()) {
+		if (ishit(this->head, i->second))
+			break;
+		i++;
+	}
+	if (i == APPLE::apple.end()) {
+		return false;
+	}
+	else {
+		addlength();//增加长度
+		APPLE::apple.erase(i);//删除苹果
+		return true;
+	}
+}
+
+void putapple() {
+	if (APPLE::isinitial) {
+		for (auto i = APPLE::apple.begin(); i != APPLE::apple.end(); i++) {
+			i->second.image.drawimage(i->second.LT.x, i->second.LT.y);
+		}
+	}
+}
+
+void addapple() {
+	if (APPLE::isinitial) {
+		APPLE::quantity++;
+		int x = rand() % (COL - APPLE::size) - COL / 2;
+		int y = rand() % (RAW - APPLE::size) - RAW / 2;
+		POINT p = { x,y };
+		APPLE newapple(p);
+		APPLE::apple.push_back(std::make_pair(p, newapple));
+	}
+}
+
+void addapple(POINT pos) {
+	if (APPLE::isinitial) {
+		APPLE::quantity++;
+		APPLE newapple(pos);
+		APPLE::apple.push_back(std::make_pair(pos, newapple));
+	}
+}
+
+void APPLE::initialize(TRSP_IMAGE& img) {
+	image = img;
+	isinitial = true;
+};
