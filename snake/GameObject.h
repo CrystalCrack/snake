@@ -2,8 +2,8 @@
 #ifndef _GAME_OBJECT
 #define _GAME_OBJECT
 #define DEFAULTSIZE 30
-#define COL 1280//横向长度
-#define RAW 720//纵向长度
+#define COL 1152//横向长度
+#define RAW 864//纵向长度
 #define DIS 15
 #define PI 3.1415926
 #
@@ -38,6 +38,25 @@ public:
 	inline GameObject():xy({0,0}){}
 	inline GameObject(POINT in_xy) :xy(in_xy) {}
 	friend bool ishit(GameObject obj1, GameObject obj2);
+};
+
+class APPLE : GameObject {
+	friend class SNAKE;
+private:
+	static int size;
+	static TRSP_IMAGE image;
+	POINT LB;
+public:
+	void putapple();
+	inline APPLE() {
+		xy.x = rand() % COL - COL / 2;
+		xy.y = rand() % RAW - RAW / 2;
+		LB = { xy.x - size / 2,xy.y - size / 2 };
+	}
+	inline APPLE(POINT pos) :GameObject(pos) {
+		LB = { xy.x - size / 2,xy.y - size / 2 };
+	};
+	static void initialize(TRSP_IMAGE& img);
 };
 
 enum direct {//方向枚举
@@ -98,6 +117,7 @@ public:
 };
 
 class SNAKE {
+	friend class judgeline;
 private:
 	HEAD head;
 	vector<BODY> snake;
@@ -109,42 +129,41 @@ public:
 	inline int numberofhistory() {
 		return history.size();
 	}
+
 	inline int getlength() { return length; }
-	void drawsnake();
-	void move();
-	void turn(direct d);
-	void addlength();
-	bool iseaten();
 	inline direct getdir() {
 		return head.getdir();
 	}
+
+	void drawsnake();
+
+	void move();
+	void turn(direct d);
+	void addlength();
+	inline void setspeed(int v) {
+		speed = v;
+	}
+	inline void speedup() { speed++; }
+
+	int iseaten(vector<APPLE>&);
+	bool isdead();
+
 };
 
 
-class APPLE : GameObject {
-	friend class SNAKE;
+
+
+
+class judgeline {
 private:
-	static int quantity;//存储苹果总数
-	static vector<pair<POINT, APPLE>> apple;//存储所有苹果的点和位置
-	static bool isinitial;
-	static int size;
-	static TRSP_IMAGE image;
-	POINT LB;
+	POINT p1;
+	POINT p2;
+	direct dir;
+	int width;
 public:
-	friend void putapple();
-	friend void addapple();
-	friend void addapple(POINT pos);
-	inline APPLE(POINT pos) :GameObject(pos) {
-		quantity++;
-		LB = { xy.x - size / 2,xy.y - size / 2 };
-	};
-	static void initialize(TRSP_IMAGE& img);
+	judgeline() {}
+	inline judgeline(POINT point_1, POINT point_2, direct d1, int wid) :p1(point_1), p2(point_2), dir(d1), width(wid) {}
+	bool judge(POINT pos);
 };
-
-void putapple();
-void addapple();
-void addapple(POINT pos);
-
-
 
 #endif

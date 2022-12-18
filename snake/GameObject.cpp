@@ -1,8 +1,5 @@
 #include "GameObject.h"
 
-int APPLE::quantity;//存储苹果总数
-vector<pair<POINT, APPLE>> APPLE::apple;//存储所有苹果的点和位置
-bool APPLE::isinitial;
 int APPLE::size = DEFAULTSIZE;
 TRSP_IMAGE APPLE::image;
 
@@ -111,6 +108,7 @@ void BODY::putbody() {
 	}
 }
 
+
 SNAKE::SNAKE(TRSP_IMAGE up, TRSP_IMAGE left, TRSP_IMAGE right, TRSP_IMAGE down):head(up,left,right,down,0,0) {
 	snake.reserve(1000000);
 	length = 5;
@@ -169,20 +167,20 @@ void SNAKE::move() {
 		break;
 	}
 	if (head.xy.x > COL / 2) {
-		head.xy.x -= COL;
 		history.push_back(std::make_pair(RIGHT, head.xy));
+		head.xy.x -= COL;
 	}
 	else if (head.xy.x < -COL / 2) {
-		head.xy.x += COL;
 		history.push_back(std::make_pair(LEFT, head.xy));
+		head.xy.x += COL;
 	}
 	if (head.xy.y > RAW / 2) {
-		head.xy.y -= RAW;
 		history.push_back(std::make_pair(UP, head.xy));
+		head.xy.y -= RAW;
 	}
 	else if (head.xy.y < -RAW / 2) {
-		head.xy.y += RAW;
 		history.push_back(std::make_pair(DOWN, head.xy));
+		head.xy.y += RAW;
 	}
 	head.LB.x = head.xy.x - head.size / 2;
 	head.LB.y = head.xy.y - head.size / 2;
@@ -266,7 +264,7 @@ void SNAKE::move() {
 			i->xy.y += RAW;
 		i++;
 	}
-	if (snake[snake.size() - 1].now == 1) {//最后一位也越过了第一个节点
+	while (snake[snake.size() - 1].now) {//最后一位也越过了第一个节点
 		history.erase(history.begin());//删除第一个节点
 		for (auto m = snake.begin(); m != snake.end(); m++) {
 			m->now--;
@@ -294,51 +292,66 @@ void SNAKE::addlength() {
 	snake.push_back(body);
 }
 
-bool SNAKE::iseaten() {
-	auto i = APPLE::apple.begin();
-	while (i != APPLE::apple.end()) {
-		if (ishit(this->head, i->second))
+int SNAKE::iseaten(vector<APPLE>& apple) {
+	int i = 0;
+	while (i != apple.size()) {
+		if (ishit(this->head, apple[i]))
 			break;
 		i++;
 	}
-	if (i == APPLE::apple.end()) {
-		return false;
-	}
-	else {
-		addlength();//增加长度
-		APPLE::apple.erase(i);//删除苹果
-		return true;
-	}
+	return i;
 }
 
-void putapple() {
-	if (APPLE::isinitial) {
-		for (auto i = APPLE::apple.begin(); i != APPLE::apple.end(); i++) {
-			i->second.image.drawimage(i->second.LB.x, i->second.LB.y);
-		}
+bool SNAKE::isdead() {
+	for (int i = 1; i < history.size(); i++) {
+		judgeline m;
+		if (i != 1)
+			m = judgeline(history[i - 1].second, history[i].second, history[i-1].first, speed);
+		else
+			m = judgeline((snake.end() - 1)->xy, history[i].second, history[i-1].first, speed);
+		if (m.judge(head.xy))
+			return true;
 	}
+	return false;
 }
 
-void addapple() {
-	if (APPLE::isinitial) {
-		APPLE::quantity++;
-		int x = rand() % (COL - APPLE::size) - COL / 2;
-		int y = rand() % (RAW - APPLE::size) - RAW / 2;
-		POINT p = { x,y };
-		APPLE newapple(p);
-		APPLE::apple.push_back(std::make_pair(p, newapple));
-	}
-}
-
-void addapple(POINT pos) {
-	if (APPLE::isinitial) {
-		APPLE::quantity++;
-		APPLE newapple(pos);
-		APPLE::apple.push_back(std::make_pair(pos, newapple));
-	}
+void APPLE::putapple() {
+	image.drawimage(LB.x, LB.y);
 }
 
 void APPLE::initialize(TRSP_IMAGE& img) {
 	image = img;
-	isinitial = true;
 };
+
+bool judgeline::judge(POINT pos) {
+	if (p1.x == p2.x && p1.y == p2.y) {//单个点不判定
+		return false;//没碰到
+	}
+	switch (dir) {
+	case RIGHT:
+		if (p1.x < p2.x && (pos.x>p1.x && pos.x<p2.x) && abs(pos.y - p1.y) < width / 2)
+			return true;
+		else if (p1.x > p2.x && (pos.x>p1.x || pos.x<p2.x) && abs(pos.y - p1.y) < width / 2)
+			return true;
+		break;
+	case LEFT:
+		if (p1.x > p2.x && (pos.x<p1.x && pos.x>p2.x) && abs(pos.y - p1.y) < width / 2)
+			return true;
+		else if (p1.x < p2.x && (pos.x<p1.x || pos.x>p2.x) && abs(pos.y - p1.y) < width / 2)
+			return true;
+		break;
+	case UP:
+		if (p1.y < p2.y && (pos.y>p1.y && pos.y<p2.y) && abs(pos.x - p1.x) < width / 2)
+			return true;
+		else if (p1.y > p2.y && (pos.y>p1.y || pos.y<p2.y) && abs(pos.x - p1.x) < width / 2)
+			return true;
+		break;
+	case DOWN:
+		if (p1.y > p2.y && (pos.y<p1.y && pos.y>p2.y) && abs(pos.x - p1.x) < width / 2)
+			return true;
+		else if (p1.y < p2.y && (pos.y<p1.y || pos.y>p2.y) && abs(pos.x - p1.x) < width / 2)
+			return true;
+		break;
+	}
+	return false;
+}
