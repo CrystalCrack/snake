@@ -168,14 +168,22 @@ void SNAKE::move() {
 		head.xy.x -= speed;
 		break;
 	}
-	if (head.xy.x > COL / 2)
+	if (head.xy.x > COL / 2) {
 		head.xy.x -= COL;
-	else if (head.xy.x < -COL / 2)
+		history.push_back(std::make_pair(RIGHT, head.xy));
+	}
+	else if (head.xy.x < -COL / 2) {
 		head.xy.x += COL;
-	if (head.xy.y > RAW / 2)
+		history.push_back(std::make_pair(LEFT, head.xy));
+	}
+	if (head.xy.y > RAW / 2) {
 		head.xy.y -= RAW;
-	else if (head.xy.y < -RAW / 2)
+		history.push_back(std::make_pair(UP, head.xy));
+	}
+	else if (head.xy.y < -RAW / 2) {
 		head.xy.y += RAW;
+		history.push_back(std::make_pair(DOWN, head.xy));
+	}
 	head.LB.x = head.xy.x - head.size / 2;
 	head.LB.y = head.xy.y - head.size / 2;
 	auto i = snake.begin();
@@ -247,8 +255,9 @@ void SNAKE::move() {
 					i->xy.y -= p;
 			}
 		}
-		if (i->xy.x > COL / 2)
+		if (i->xy.x > COL / 2) {
 			i->xy.x -= COL;
+		}
 		else if (i->xy.x < -COL / 2)
 			i->xy.x += COL;
 		if (i->xy.y > RAW / 2)

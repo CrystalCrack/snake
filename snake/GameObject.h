@@ -106,6 +106,9 @@ private:
 	vector<pair<direct,POINT>> history;//存储蛇运动的历史记录
 public:
 	SNAKE(TRSP_IMAGE up, TRSP_IMAGE left, TRSP_IMAGE right, TRSP_IMAGE down);
+	inline int numberofhistory() {
+		return history.size();
+	}
 	inline int getlength() { return length; }
 	void drawsnake();
 	void move();
