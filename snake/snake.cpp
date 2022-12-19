@@ -8,17 +8,9 @@
 
 
 #pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" ) // 设置入口地址
-#include<easyx.h>
-#include<iostream>
-#include<SDL.h>
-#include<SDL_mixer.h>
-#include"GameObject.h"
+#include"procedure.h"
 
 using namespace std;
-
-void draw(SNAKE s);
-void newgame();
-bool menu();
 
 int main(int argc, char* argv[]) {
 	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
@@ -31,10 +23,10 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	while (1) {
-		bool flag = menu();
-		if (!flag)
+		GAMEMODE mode = menu();
+		if (mode == QUIT)
 			break;
-		newgame();
+		newgame(mode);
 	}
 	return 0;
 }

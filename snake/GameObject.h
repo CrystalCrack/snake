@@ -2,20 +2,23 @@
 #ifndef _GAME_OBJECT
 #define _GAME_OBJECT
 #define DEFAULTSIZE 30
-#define COL 1152//横向长度
-#define RAW 864//纵向长度
 #define DIS 15
-#define PI 3.1415926
-#
 #include<easyx.h>
 #include<cmath>
 #include<vector>
-#include<map>
 using std::vector;
 using std::pair;
-using std::map;
 
-static IMAGE bg;
+extern int COL;//横向长度
+extern int RAW;//纵向长度
+
+enum GAMEMODE {//游戏模式枚举
+	NORMAL,
+	CHICKEN,
+	QUIT
+};
+
+extern IMAGE bg;
 
 class TRSP_IMAGE {//transparent image
 private:
@@ -37,6 +40,7 @@ protected:
 public:
 	inline GameObject():xy({0,0}){}
 	inline GameObject(POINT in_xy) :xy(in_xy) {}
+	inline POINT getxy() { return xy; }
 	friend bool ishit(GameObject obj1, GameObject obj2);
 };
 
@@ -48,11 +52,7 @@ private:
 	POINT LB;
 public:
 	void putapple();
-	inline APPLE() {
-		xy.x = rand() % COL - COL / 2;
-		xy.y = rand() % RAW - RAW / 2;
-		LB = { xy.x - size / 2,xy.y - size / 2 };
-	}
+	APPLE(SNAKE s);
 	inline APPLE(POINT pos) :GameObject(pos) {
 		LB = { xy.x - size / 2,xy.y - size / 2 };
 	};
@@ -113,19 +113,21 @@ public:
 		radius = size / 2;
 		mode = mde % 2 == 0 ? SHALLOW : DEEP;
 	};
-	void putbody();
+	void putbody(GAMEMODE);
 };
 
 class SNAKE {
+	friend class APPLE;
 	friend class judgeline;
 private:
+	GAMEMODE mod;
 	HEAD head;
 	vector<BODY> snake;
 	int speed;
 	int length;
 	vector<pair<direct,POINT>> history;//存储蛇运动的历史记录
 public:
-	SNAKE(TRSP_IMAGE up, TRSP_IMAGE left, TRSP_IMAGE right, TRSP_IMAGE down);
+	SNAKE(TRSP_IMAGE up, TRSP_IMAGE left, TRSP_IMAGE right, TRSP_IMAGE down, GAMEMODE mod);
 	inline int numberofhistory() {
 		return history.size();
 	}

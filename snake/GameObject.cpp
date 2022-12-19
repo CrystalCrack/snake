@@ -69,15 +69,27 @@ void HEAD::puthead() {
 	}
 }
 
-void BODY::putbody() {
+void BODY::putbody(GAMEMODE mod) {
 	switch (mode) {//根据身体类型选择不同的颜色
 	case SHALLOW:
-		setlinecolor(0xb7b7ed);
-		setfillcolor(0xb7b7ed);
+		if (mod == NORMAL) {
+			setlinecolor(0xb7b7ed);
+			setfillcolor(0xb7b7ed);
+		}
+		else if (mod == CHICKEN) {
+			setlinecolor(0xed9291);
+			setfillcolor(0xed9291);
+		}
 		break;
 	case DEEP:
-		setlinecolor(0x3c3c48);
-		setfillcolor(0x3c3c48);
+		if (mod == NORMAL) {
+			setlinecolor(0x3c3c48);
+			setfillcolor(0x3c3c48);
+		}
+		else if (mod == CHICKEN) {
+			setlinecolor(0xf0d6a3);
+			setfillcolor(0xf0d6a3);
+		}
 	}
 	SetWorkingImage(NULL);//切换工作平面为背景
 	fillcircle(xy.x, xy.y, radius);
@@ -109,7 +121,7 @@ void BODY::putbody() {
 }
 
 
-SNAKE::SNAKE(TRSP_IMAGE up, TRSP_IMAGE left, TRSP_IMAGE right, TRSP_IMAGE down):head(up,left,right,down,0,0) {
+SNAKE::SNAKE(TRSP_IMAGE up, TRSP_IMAGE left, TRSP_IMAGE right, TRSP_IMAGE down,GAMEMODE mode):head(up,left,right,down,0,0),mod(mode) {
 	snake.reserve(1000000);
 	length = 5;
 	speed = 5;
@@ -129,7 +141,7 @@ void SNAKE::drawsnake() {
 	auto i = snake.end();//迭代器
 	do{
 		i--;
-		i->putbody();
+		i->putbody(mod);
 	} while (i != snake.begin());
 	head.puthead();
 }
@@ -313,6 +325,27 @@ bool SNAKE::isdead() {
 			return true;
 	}
 	return false;
+}
+
+APPLE::APPLE(SNAKE s) {
+	bool flag = false;
+	do{
+		xy.x = rand() % (COL - size) - COL / 2;
+		xy.y = rand() % (RAW - size) - RAW / 2;
+		int i = 0;
+		for (int i = 1; i < s.history.size(); i++) {
+			judgeline m;
+			if (i != 1)
+				m = judgeline(s.history[i - 1].second, s.history[i].second, s.history[i - 1].first, s.speed);
+			else
+				m = judgeline((s.snake.end() - 1)->getxy(), s.history[i].second, s.history[i - 1].first, s.speed);
+			if (m.judge(xy))
+				flag = true;
+			else
+				flag = false;
+		}
+	} while (flag);
+	LB = { xy.x - size / 2,xy.y - size / 2 };
 }
 
 void APPLE::putapple() {
