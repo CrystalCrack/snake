@@ -12,9 +12,11 @@ using std::pair;
 extern int COL;//横向长度
 extern int RAW;//纵向长度
 
-enum GAMEMODE {//游戏模式枚举
+
+enum HDW {//游戏模式枚举
 	NORMAL,
 	CHICKEN,
+	MENU,
 	QUIT
 };
 
@@ -113,21 +115,21 @@ public:
 		radius = size / 2;
 		mode = mde % 2 == 0 ? SHALLOW : DEEP;
 	};
-	void putbody(GAMEMODE);
+	void putbody(HDW);
 };
 
 class SNAKE {
 	friend class APPLE;
 	friend class judgeline;
 private:
-	GAMEMODE mod;
+	HDW mod;
 	HEAD head;
 	vector<BODY> snake;
 	int speed;
 	int length;
 	vector<pair<direct,POINT>> history;//存储蛇运动的历史记录
 public:
-	SNAKE(TRSP_IMAGE up, TRSP_IMAGE left, TRSP_IMAGE right, TRSP_IMAGE down, GAMEMODE mod);
+	SNAKE(TRSP_IMAGE up, TRSP_IMAGE left, TRSP_IMAGE right, TRSP_IMAGE down, HDW mod);
 	inline int numberofhistory() {
 		return history.size();
 	}

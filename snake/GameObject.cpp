@@ -69,7 +69,7 @@ void HEAD::puthead() {
 	}
 }
 
-void BODY::putbody(GAMEMODE mod) {
+void BODY::putbody(HDW mod) {
 	switch (mode) {//根据身体类型选择不同的颜色
 	case SHALLOW:
 		if (mod == NORMAL) {
@@ -121,10 +121,10 @@ void BODY::putbody(GAMEMODE mod) {
 }
 
 
-SNAKE::SNAKE(TRSP_IMAGE up, TRSP_IMAGE left, TRSP_IMAGE right, TRSP_IMAGE down,GAMEMODE mode):head(up,left,right,down,0,0),mod(mode) {
+SNAKE::SNAKE(TRSP_IMAGE up, TRSP_IMAGE left, TRSP_IMAGE right, TRSP_IMAGE down,HDW mode):head(up,left,right,down,0,0),mod(mode) {
 	snake.reserve(1000000);
 	length = 5;
-	speed = 5;
+	speed = 3;
 	BODY body[4];
 
 	for (int i = 0; i < 4; i++) {
@@ -179,20 +179,20 @@ void SNAKE::move() {
 		break;
 	}
 	if (head.xy.x > COL / 2) {
-		history.push_back(std::make_pair(RIGHT, head.xy));
 		head.xy.x -= COL;
+		history.push_back(std::make_pair(RIGHT, head.xy));
 	}
 	else if (head.xy.x < -COL / 2) {
-		history.push_back(std::make_pair(LEFT, head.xy));
 		head.xy.x += COL;
+		history.push_back(std::make_pair(LEFT, head.xy));
 	}
 	if (head.xy.y > RAW / 2) {
-		history.push_back(std::make_pair(UP, head.xy));
 		head.xy.y -= RAW;
+		history.push_back(std::make_pair(UP, head.xy));
 	}
 	else if (head.xy.y < -RAW / 2) {
-		history.push_back(std::make_pair(DOWN, head.xy));
 		head.xy.y += RAW;
+		history.push_back(std::make_pair(DOWN, head.xy));
 	}
 	head.LB.x = head.xy.x - head.size / 2;
 	head.LB.y = head.xy.y - head.size / 2;
@@ -330,8 +330,8 @@ bool SNAKE::isdead() {
 APPLE::APPLE(SNAKE s) {
 	bool flag = false;
 	do{
-		xy.x = rand() % (COL - size) - COL / 2;
-		xy.y = rand() % (RAW - size) - RAW / 2;
+		xy.x = rand() % (COL - 2*size) - COL / 2;
+		xy.y = rand() % (RAW - 2*size) - RAW / 2;
 		int i = 0;
 		for (int i = 1; i < s.history.size(); i++) {
 			judgeline m;

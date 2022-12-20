@@ -22,11 +22,19 @@ int main(int argc, char* argv[]) {
 		cerr << "初始化音频失败:" << Mix_GetError() << endl;
 		return 1;
 	}
+
+	HDW mode = MENU;
+	int score;
+
 	while (1) {
-		GAMEMODE mode = menu();
-		if (mode == QUIT)
+		switch (mode) {
+		case MENU:
+			mode = menu();
+		case QUIT:
 			break;
-		newgame(mode);
+		}
+		score = newgame(mode);
+		mode = show_end_screen(score);
 	}
 	return 0;
 }

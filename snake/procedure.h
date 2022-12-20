@@ -7,13 +7,17 @@
 #include<SDL.h>
 #include<SDL_mixer.h>
 #include"GameObject.h"
-#define a 1280
-#define b 960
+#define a 1024
+#define b 768
 using namespace std;
 
+extern int max_score;
 
-GAMEMODE menu();
+HDW menu();
 void draw(SNAKE s, vector<APPLE>& apple);
-void newgame(GAMEMODE mode);
+int newgame(HDW mode);
+HDW show_end_screen(int score);
+
+void instru();
 
 #endif

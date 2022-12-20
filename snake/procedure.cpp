@@ -1,70 +1,90 @@
 #include"procedure.h"
+#include"conio.h"
 
-GAMEMODE menu()
+HDW menu()
 {
 	Mix_Chunk* chunk = Mix_LoadWAV(".\\musics\\bubble.wav");
 	Mix_Music* music = Mix_LoadMUS(".\\musics\\Start-Menu.mp3");
 	if (Mix_PlayMusic(music, -1) < 0) {
 		cerr << "播放音乐失败: " << Mix_GetError() << endl;
 	}
+
+	IMAGE image;
+	IMAGE inst_o, inst_m;
+
+	loadimage(&image, _T(".\\images\\menu.jpg"), a, b);
+	loadimage(&inst_o, L".\\images\\inst_o.jpg", a, b);
+	loadimage(&inst_m, L".\\images\\inst_m.jpg", a, b);
+
+	TRSP_IMAGE inst(inst_o, inst_m);
+
 	initgraph(a, b);
 	cleardevice();
-	IMAGE image;
+	
 	BeginBatchDraw();
-	loadimage(&image, _T(".\\images\\贪吃蛇menu.jpg"), a, b);
+	
 	putimage(0, 0, &image);
+	inst.drawimage(a - 94, 0);
 	FlushBatchDraw();
 	while (1)
 	{
 		ExMessage m;
 		if (peekmessage(&m, EX_MOUSE))//获取鼠标信息
 		{
+			if (m.message == WM_LBUTTONUP && m.x > 932 && m.x < a && m.y>212 && m.y < 559) {
+				instru();
+				continue;
+			}
 			if (m.message == WM_MOUSEMOVE) {
-				if (m.x > 340 && m.x < 940 && m.y>380 && m.y < 490) {//鼠标在开始游戏按钮区域内
+				if (m.x > 272 && m.x < 752 && m.y>304 && m.y < 392) {//鼠标在开始游戏按钮区域内
 					Mix_PlayChannel(-1,chunk, 0);
-					loadimage(&image, _T(".\\images\\menu按钮按下开始游戏.jpg"), a, b);
+					loadimage(&image, _T(".\\images\\menu_start.jpg"), a, b);
 					cleardevice();
 					putimage(0, 0, &image);
+					inst.drawimage(a - 94, 0);
 					FlushBatchDraw();
 					while (1) {//进入循环，等待鼠标按下或者鼠标离开区域
 						peekmessage(&m, EX_MOUSE);
-						if (!(m.x > 340 && m.x < 940 && m.y>380 && m.y < 490)) {//鼠标离开区域
-							loadimage(&image, _T(".\\images\\贪吃蛇menu.jpg"), a, b);
+						if (!(m.x > 272 && m.x < 752 && m.y>304 && m.y < 392)) {//鼠标离开区域
+							loadimage(&image, _T(".\\images\\menu.jpg"), a, b);
 							cleardevice();
 							putimage(0, 0, &image);
+							inst.drawimage(a - 94, 0);
 							FlushBatchDraw();
 							break;//跳出循环
 						}
 						//检测鼠标是否按下
 						switch (m.message) {
-						case WM_LBUTTONDOWN:
+						case WM_LBUTTONUP:
 							EndBatchDraw();
 							Mix_HaltMusic();
 							return NORMAL;
-						case WM_RBUTTONDOWN:
+						case WM_RBUTTONUP:
 							EndBatchDraw();
 							Mix_HaltMusic();
 							return CHICKEN;
 						}
 					}
 				}
-				else if (m.x > 340 && m.x < 940 && m.y>550 && m.y < 660) {//鼠标在退出游戏按钮区域内
+				else if (m.x > 272 && m.x < 752 && m.y>440 && m.y < 528) {//鼠标在退出游戏按钮区域内
 					Mix_PlayChannel(-1, chunk, 0);
-					loadimage(&image, _T(".\\images\\menu按钮按下退出游戏.jpg"), a, b);
+					loadimage(&image, _T(".\\images\\menu_exit.jpg"), a, b);
 					cleardevice();
 					putimage(0, 0, &image);
+					inst.drawimage(a - 94, 0);
 					FlushBatchDraw();
 					while (1) {//进入循环，等待鼠标按下或者鼠标离开区域
 						peekmessage(&m, EX_MOUSE);
-						if (!(m.x > 340 && m.x < 940 && m.y>550 && m.y < 660)) {//鼠标离开区域
-							loadimage(&image, _T(".\\images\\贪吃蛇menu.jpg"), a, b);
+						if (!(m.x > 272 && m.x < 752 && m.y>440 && m.y < 528)) {//鼠标离开区域
+							loadimage(&image, _T(".\\images\\menu.jpg"), a, b);
 							cleardevice();
 							putimage(0, 0, &image);
+							inst.drawimage(a - 94, 0);
 							FlushBatchDraw();
 							break;//跳出循环
 						}
 						//检测鼠标是否按下
-						if (m.message == WM_LBUTTONDOWN) {
+						if (m.message == WM_LBUTTONUP) {
 							EndBatchDraw();
 							Mix_HaltMusic();
 							return QUIT;
@@ -73,6 +93,85 @@ GAMEMODE menu()
 				}
 			}
 		}
+	}
+}
+
+void instru() {
+	IMAGE inst_o, inst_m;
+	loadimage(&inst_o, L".\\images\\inst_o.jpg",a,b);
+	loadimage(&inst_m, L".\\images\\inst_m.jpg",a,b);
+	TRSP_IMAGE inst(inst_o, inst_m);
+	IMAGE menu;
+	loadimage(&menu, _T(".\\images\\menu.jpg"), a, b);
+	putimage(0, 0, &menu);
+	inst.drawimage(a-94, 0);
+	FlushBatchDraw();
+	ExMessage m;
+
+	int x = a - 94;
+	float i;
+	clock_t start = clock();
+	for (i = 2; i*i/3 <= 30; i+=0.4) {
+		x -= i * i / 3;
+		inst.drawimage(x, 0);
+		FlushBatchDraw();
+		Sleep(1000 / 60 - (clock() - start));
+		start = clock();
+	}
+	while (x > 239) {
+		if (x - 30 < 239)
+			x = 239;
+		else
+			x -= 30;
+		inst.drawimage(x, 0);
+		FlushBatchDraw();
+		Sleep(1000 / 60 - (clock() - start));
+		start = clock();
+	}
+	for (i = 9.2; i >= 2; i -= 0.4) {
+		x -= i * i / 3;
+		inst.drawimage(x, 0);
+		FlushBatchDraw();
+		Sleep(1000 / 60 - (clock() - start));
+		start = clock();
+	}
+	while (1) {
+		peekmessage(&m, EX_MOUSE);
+		if (m.message == WM_LBUTTONUP && m.x > 0 && m.x < 95 && m.y>212 && m.y < 559)
+			break;
+	}
+	start = clock();
+	for (i = 2; i * i / 3 <= 30; i += 0.4) {
+		x += i * i / 3;
+		putimage(0, 0, &menu);
+		inst.drawimage(x, 0);
+		FlushBatchDraw();
+		Sleep(1000 / 60 - (clock() - start));
+		start = clock();
+	}
+	while (x < a - 333) {
+		if (x + 30 > a - 333)
+			x = a - 333;
+		else
+			x += 30;
+		putimage(0, 0, &menu);
+		inst.drawimage(x, 0);
+		FlushBatchDraw();
+		Sleep(1000 / 60 - (clock() - start));
+		start = clock();
+	}
+	for (i = 9.6; i >= 2; i -= 0.4) {
+		if (x + i * i / 3 > a - 94){
+			x = a - 94;
+		break;
+		}
+		else
+			x += i * i / 3;
+		putimage(0, 0, &menu);
+		inst.drawimage(x, 0);
+		FlushBatchDraw();
+		Sleep(1000 / 60 - (clock() - start));
+		start = clock();
 	}
 }
 
@@ -89,10 +188,12 @@ void draw(SNAKE s,vector<APPLE> &apple) {
 	s.drawsnake();
 }
 
-void newgame(GAMEMODE mode) {
+int newgame(HDW mode) {
 	srand(time(0));
 
-	loadimage(&bg, _T(".\\images\\background.jpg"), COL, RAW);//预加载
+	int score = 0;
+
+	loadimage(&bg, _T(".\\images\\background.jpg"), 2000, 2000);//预加载
 
 	Mix_Chunk* chunk = Mix_LoadWAV(".\\musics\\normal_version\\eaten!.mp3");
 	Mix_Chunk* eat[5] = { Mix_LoadWAV(".\\musics\\chicken_version\\gene.mp3") ,Mix_LoadWAV(".\\musics\\chicken_version\\knee.mp3"),Mix_LoadWAV(".\\musics\\chicken_version\\tie.mp3"),Mix_LoadWAV(".\\musics\\chicken_version\\may.mp3"),Mix_LoadWAV(".\\musics\\chicken_version\\bro_kun.mp3") };
@@ -112,8 +213,8 @@ void newgame(GAMEMODE mode) {
 	IMAGE apple_m, apple_o;
 
 	if (mode == NORMAL) {
-		COL = 1152;
-		RAW = 864;
+		COL = 1024;
+		RAW = 768;
 		if (Mix_PlayMusic(music, 0) < 0) {
 			cerr << "播放音乐失败: " << Mix_GetError() << endl;
 		}
@@ -235,6 +336,8 @@ void newgame(GAMEMODE mode) {
 
 	int count = 0;
 
+	ExMessage m;
+
 	while (1) {
 		//判断游戏音乐是否播放完毕
 		if (Mix_PlayingMusic() == 0) {
@@ -243,7 +346,6 @@ void newgame(GAMEMODE mode) {
 			// 重新开始播放
 			Mix_PlayMusic(music_list[current_music], 0);
 		}
-		ExMessage m;
 		if (peekmessage(&m, EX_KEY))
 			if (m.message == WM_KEYDOWN)
 				switch (m.vkcode) {
@@ -293,10 +395,24 @@ void newgame(GAMEMODE mode) {
 							break;
 						}
 					}
+				case VK_ESCAPE:
+					max_score = max_score < score ? score : max_score;
+					Mix_HaltMusic();
+					closegraph();
+					return score;
+				case VK_SHIFT:
+					s.setspeed(6);
+					break;
+				}
+			else if(m.message==WM_KEYUP)
+				switch (m.vkcode) {
+				case VK_SHIFT:
+					s.setspeed(3);
 				}
 		s.move();
 		int pos = s.iseaten(app);
 		if (pos!=app.size()) {
+			score++;
 			if(mode==NORMAL)
 				Mix_PlayChannel(-1, chunk, 0);
 			else if (mode == CHICKEN) {
@@ -308,11 +424,12 @@ void newgame(GAMEMODE mode) {
 			app.push_back(APPLE(s));
 		}
 		if (s.isdead()) {
+			max_score = max_score < score ? score : max_score;
 			if(mode==CHICKEN)
 				Mix_PlayChannel(-1, NGM, 0);
 			Mix_HaltMusic();
 			closegraph();
-			return;
+			return score;
 		}
 		end = clock();
 		long t = static_cast<long double>(end - start) / CLOCKS_PER_SEC * 1000;
@@ -328,3 +445,108 @@ void newgame(GAMEMODE mode) {
 	}
 }
 
+HDW show_end_screen(int score) {
+
+	Mix_Chunk* chunk = Mix_LoadWAV(".\\musics\\bubble.wav");
+	Mix_Music* music = Mix_LoadMUS(".\\musics\\Start-Menu.mp3");
+	if (Mix_PlayMusic(music, -1) < 0) {
+		cerr << "播放音乐失败: " << Mix_GetError() << endl;
+	}
+	
+	//画图前准备
+	initgraph(a, b);
+	BeginBatchDraw();
+	cleardevice();
+
+	//声明背景图片
+	IMAGE img;
+
+	//声明消息盒子
+	ExMessage m;
+
+	//初始化分数字符串以及文字样式
+	wchar_t arr[20];
+	wchar_t max[20];
+	swprintf_s(max, L"%d", max_score);
+	swprintf_s(arr, L"%d", score);
+	settextstyle(80, 40, _T("微软雅黑"));
+	setbkmode(TRANSPARENT);
+	settextcolor(BLACK);
+
+	//绘制初始界面
+	loadimage(&img, _T(".\\images\\ending.jpg"), a, b);
+	putimage(0, 0, &img);
+	outtextxy(400, 560, arr);
+	outtextxy(400, 640, max);
+	FlushBatchDraw();
+
+	while (1)
+	{
+		
+		if (peekmessage(&m, EX_MOUSE))
+		{
+			if (m.message == WM_MOUSEMOVE)
+			{
+				if (m.x > 272 && m.x < 752 && m.y>304 && m.y < 392)
+				{
+					Mix_PlayChannel(-1, chunk, 0);
+					//更换图片
+					loadimage(&img, _T(".\\images\\end_retry.jpg"), a, b);
+					cleardevice();
+					putimage(0, 0, &img);
+					outtextxy(400, 560, arr);
+					outtextxy(400, 640, max);
+					FlushBatchDraw();
+					while (1)
+					{
+						peekmessage(&m, EX_MOUSE);
+						if (!(m.x > 272 && m.x < 752 && m.y>304 && m.y < 392)) {
+							//绘制初始界面
+							loadimage(&img, _T(".\\images\\ending.jpg"), a, b);
+							putimage(0, 0, &img);
+							outtextxy(400, 560, arr);
+							outtextxy(400, 640, max);
+							FlushBatchDraw();
+							break;
+						}
+						if (m.message == WM_LBUTTONUP) {
+							EndBatchDraw();
+							return NORMAL;
+						}
+						else if (m.message == WM_RBUTTONUP) {
+							EndBatchDraw();
+							return CHICKEN;
+						}
+					}
+				}
+				else if (m.x > 272 && m.x < 752 && m.y>440 && m.y < 528)
+				{
+					Mix_PlayChannel(-1, chunk, 0);
+					loadimage(&img, _T(".\\images\\end_back.jpg"), a, b);
+					cleardevice();
+					putimage(0, 0, &img);
+					outtextxy(400, 560, arr);
+					outtextxy(400, 640, max);
+					FlushBatchDraw();
+					while (1)
+					{
+						peekmessage(&m, EX_MOUSE);
+						if (!(m.x > 272 && m.x < 752 && m.y>440 && m.y < 528)) {
+							//绘制初始界面
+							loadimage(&img, _T(".\\images\\ending.jpg"), a, b);
+							putimage(0, 0, &img);
+							outtextxy(400, 560, arr);
+							outtextxy(400, 640, max);
+							FlushBatchDraw();
+							break;
+						}
+						if (m.message == WM_LBUTTONUP) {
+							EndBatchDraw();
+							return MENU;
+						}
+					}
+				}
+			}
+		}
+	}
+}
