@@ -124,17 +124,14 @@ void BODY::putbody(HDW mod) {
 SNAKE::SNAKE(TRSP_IMAGE up, TRSP_IMAGE left, TRSP_IMAGE right, TRSP_IMAGE down, HDW mode) :head(up, left, right, down, 0, 0), mod(mode) {
 	snake.reserve(1000000);
 	length = 5;
-	speed = 3;
+	speed = 7;
 	BODY body[4];
 
 	for (int i = 0; i < 4; i++) {
-		body[i] = BODY(i + 1, -SNAKE_BODY::distance * (i + 1), 0);
+		body[i] = BODY(i + 1, -SNAKE_BODY::distance * (i + 1), 0, RIGHT);
 		snake.push_back(body[i]);
 	}
 	history.push_back(std::make_pair(head.dir, 0));
-	for (auto x = snake.begin(); x != snake.end(); x++) {
-		x->now = 0;
-	}
 }
 
 void SNAKE::drawsnake() {
@@ -209,6 +206,7 @@ void SNAKE::move() {
 		}
 		now = it2->xy = move1(now, n_dir, x-dis);
 		if (dis == 0) {
+			it2->dir = it1->first;
 			it2++;
 			dis = SNAKE_BODY::distance;
 		}
@@ -235,18 +233,18 @@ void SNAKE::move() {
 void SNAKE::addlength() {
 	length++;
 	BODY body;
-	switch (history[snake[length - 3].now].first) {//控制坐标
+	switch (history[0].first) {//控制坐标
 	case UP:
-		body = BODY(length - 1, snake[length - 3].xy.x, snake[length - 3].xy.y - SNAKE_BODY::distance);
+		body = BODY(length - 1, snake[length - 3].xy.x, snake[length - 3].xy.y - SNAKE_BODY::distance, UP);
 		break;
 	case DOWN:
-		body = BODY(length - 1, snake[length - 3].xy.x, snake[length - 3].xy.y + SNAKE_BODY::distance);
+		body = BODY(length - 1, snake[length - 3].xy.x, snake[length - 3].xy.y + SNAKE_BODY::distance, DOWN);
 		break;
 	case LEFT:
-		body = BODY(length - 1, snake[length - 3].xy.x + SNAKE_BODY::distance, snake[length - 3].xy.y);
+		body = BODY(length - 1, snake[length - 3].xy.x + SNAKE_BODY::distance, snake[length - 3].xy.y, LEFT);
 		break;
 	case RIGHT:
-		body = BODY(length - 1, snake[length - 3].xy.x - SNAKE_BODY::distance, snake[length - 3].xy.y);
+		body = BODY(length - 1, snake[length - 3].xy.x - SNAKE_BODY::distance, snake[length - 3].xy.y, RIGHT);
 		break;
 	}
 	snake.push_back(body);
@@ -263,10 +261,47 @@ int SNAKE::iseaten(vector<APPLE>& apple) {
 }
 
 bool SNAKE::isdead() {
-	float dis;
 	for (auto it = snake.begin(); it != snake.end(); it++) {
-		dis = sqrt(pow(head.xy.x - it->xy.x, 2) + pow(head.xy.y - it->xy.y, 2));
-		if (dis <= speed)
+		int left, right, top, bottom;
+		int Left, Right, Top, Bottom;
+		bool flag1 = false, flag2 = false;
+		switch (it->dir) {
+		case LEFT:
+		case RIGHT:
+			left = it->xy.x - it->radius;
+			right = it->xy.x + it->radius;
+			top = it->xy.y + (speed / 2 + speed % 2);
+			bottom = it->xy.y - (speed / 2 + speed % 2);
+			break;
+		case UP:
+		case DOWN:
+			left = it->xy.x - (speed / 2 + speed % 2);
+			right = it->xy.x + (speed / 2 + speed % 2);
+			top = it->xy.y + it->radius;
+			bottom = it->xy.y - it->radius;
+			break;
+		}
+		Left = left < -COL / 2 ? left + COL : left;
+		Right = right > COL / 2 ? right - COL : right;
+		Top = top > RAW / 2 ? top - RAW : top;
+		Bottom = bottom < -RAW / 2 ? bottom + RAW : bottom;
+		if (Left < Right) {
+			if (head.xy.x > Left && head.xy.x < Right)
+				flag1 = true;
+		}
+		else {
+			if (head.xy.x > Left || head.xy.x < Right)
+				flag1 = true;
+		}
+		if (Bottom < Top) {
+			if (head.xy.y > Bottom && head.xy.y < Top)
+				flag2 = true;
+		}
+		else {
+			if (head.xy.y > Bottom || head.xy.y < Top)
+				flag2 = true;
+		}
+		if (flag1 && flag2)
 			return true;
 	}
 	return false;
@@ -275,13 +310,13 @@ bool SNAKE::isdead() {
 APPLE::APPLE(SNAKE s) {
 	bool flag = false;
 	do {
-		xy.x = rand() % (COL - 2 * size) - COL / 2;
-		xy.y = rand() % (RAW - 2 * size) - RAW / 2;
+		xy.x = rand() % (COL - size) - (COL - size) / 2;
+		xy.y = rand() % (RAW - size) - (RAW - size) / 2;
 		int i = 0;
 		float dis;
 		for (auto it = s.snake.begin(); it != s.snake.end(); it++) {
 			dis = sqrt(pow(s.head.getxy().x - it->getxy().x, 2) + pow(s.head.getxy().y - it->getxy().y, 2));
-			if (dis <= s.getspeed())
+			if (dis <= size/2)
 				flag = true;
 			else
 				flag = false;

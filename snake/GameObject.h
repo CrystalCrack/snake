@@ -86,16 +86,16 @@ public:
 
 class BODY : public SNAKE_BODY {
 	friend class SNAKE;
-public:
-	int now;//迭代器的替代品，指向上一个经过的节点***在SNAKE中初始化***
+private:
+	direct dir;
 	bodymode mode;
-	int radius;
 public:
+	int radius;
 	/*@param
 	* mde	奇数为深色,偶数为浅色
 	*/
-	BODY() :mode(DEEP), SNAKE_BODY({ 0,0 }), now(0), radius(size / 2) {};
-	inline BODY(unsigned int mde, int x, int y) :SNAKE_BODY({ x,y }), now(0) {
+	BODY() :mode(DEEP), SNAKE_BODY({ 0,0 }), dir(RIGHT), radius(size / 2) {};
+	inline BODY(unsigned int mde, int x, int y, direct d) :SNAKE_BODY({ x,y }), dir(d) {
 		radius = size / 2;
 		mode = mde % 2 == 0 ? SHALLOW : DEEP;
 	};

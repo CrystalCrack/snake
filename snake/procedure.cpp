@@ -328,8 +328,7 @@ int newgame(HDW mode) {
 
 	SNAKE s(up, left, right, down, mode);
 
-	clock_t start, end;
-	start = clock();
+	clock_t tick = clock();
 	
 	vector<APPLE> app;
 	app.push_back(APPLE(s));
@@ -343,6 +342,16 @@ int newgame(HDW mode) {
 	ExMessage m;
 
 	while (1) {
+		if (clock() - tick > 0) {
+			Sleep(1000 / 60 - (clock() - tick));
+		}
+		tick = clock();
+
+		BeginBatchDraw();
+		cleardevice();
+		draw(s, app);
+		FlushBatchDraw();
+		EndBatchDraw();
 		//判断游戏音乐是否播放完毕
 		if (Mix_PlayingMusic() == 0) {
 			// 当前音乐已播放完毕，将当前音乐的索引设置为下一首音乐的索引
@@ -399,19 +408,20 @@ int newgame(HDW mode) {
 							break;
 						}
 					}
+					break;
 				case VK_ESCAPE:
 					max_score = max_score < score ? score : max_score;
 					Mix_HaltMusic();
 					closegraph();
 					return score;
 				case VK_SHIFT:
-					s.setspeed(5);
+					s.setspeed(14);
 					break;
 				}
 			else if(m.message==WM_KEYUP)
 				switch (m.vkcode) {
 				case VK_SHIFT:
-					s.setspeed(3);
+					s.setspeed(7);
 				}
 		s.move();
 		int pos = s.iseaten(app);
@@ -438,21 +448,9 @@ int newgame(HDW mode) {
 				Mix_PlayChannel(-1, fail, 0);
 				Sleep(3500);
 			}
-
 			closegraph();
 			return score;
 		}
-		end = clock();
-		long t = static_cast<long double>(end - start) / CLOCKS_PER_SEC * 1000;
-		start = end;
-		if (t < 10) {
-			Sleep(10 - t);
-		}
-		BeginBatchDraw();
-		cleardevice();
-		draw(s,app);
-		FlushBatchDraw();
-		EndBatchDraw();
 	}
 }
 
