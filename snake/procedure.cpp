@@ -97,6 +97,8 @@ HDW menu()
 }
 
 void instru() {
+	Mix_Chunk* chunk = Mix_LoadWAV(".\\music\\pull-out.mp3");
+	Mix_PlayChannel(-1, chunk, 0);
 	IMAGE inst_o, inst_m;
 	loadimage(&inst_o, L".\\images\\inst_o.jpg",a,b);
 	loadimage(&inst_m, L".\\images\\inst_m.jpg",a,b);
@@ -140,6 +142,7 @@ void instru() {
 		if (m.message == WM_LBUTTONUP && m.x > 0 && m.x < 95 && m.y>212 && m.y < 559)
 			break;
 	}
+	Mix_PlayChannel(-1, chunk, 0);
 	start = clock();
 	for (i = 2; i * i / 3 <= 30; i += 0.4) {
 		x += i * i / 3;
@@ -195,6 +198,7 @@ int newgame(HDW mode) {
 
 	loadimage(&bg, _T(".\\images\\background.jpg"), 2000, 2000);//Ô¤¼ÓÔØ
 
+	Mix_Chunk* fail = Mix_LoadWAV(".\\musics\\normal_version\\fail.wav");
 	Mix_Chunk* chunk = Mix_LoadWAV(".\\musics\\normal_version\\eaten!.mp3");
 	Mix_Chunk* eat[5] = { Mix_LoadWAV(".\\musics\\chicken_version\\gene.mp3") ,Mix_LoadWAV(".\\musics\\chicken_version\\knee.mp3"),Mix_LoadWAV(".\\musics\\chicken_version\\tie.mp3"),Mix_LoadWAV(".\\musics\\chicken_version\\may.mp3"),Mix_LoadWAV(".\\musics\\chicken_version\\bro_kun.mp3") };
 	Mix_Chunk* C = Mix_LoadWAV(".\\musics\\chicken_version\\C.mp3");
@@ -401,7 +405,7 @@ int newgame(HDW mode) {
 					closegraph();
 					return score;
 				case VK_SHIFT:
-					s.setspeed(6);
+					s.setspeed(5);
 					break;
 				}
 			else if(m.message==WM_KEYUP)
@@ -425,9 +429,16 @@ int newgame(HDW mode) {
 		}
 		if (s.isdead()) {
 			max_score = max_score < score ? score : max_score;
-			if(mode==CHICKEN)
-				Mix_PlayChannel(-1, NGM, 0);
 			Mix_HaltMusic();
+			if (mode == CHICKEN) {
+				Mix_PlayChannel(-1, NGM, 0);
+				Sleep(3000);
+			}
+			else if (mode == NORMAL) {
+				Mix_PlayChannel(-1, fail, 0);
+				Sleep(3000);
+			}
+
 			closegraph();
 			return score;
 		}

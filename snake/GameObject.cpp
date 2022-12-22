@@ -121,166 +121,114 @@ void BODY::putbody(HDW mod) {
 }
 
 
-SNAKE::SNAKE(TRSP_IMAGE up, TRSP_IMAGE left, TRSP_IMAGE right, TRSP_IMAGE down,HDW mode):head(up,left,right,down,0,0),mod(mode) {
+SNAKE::SNAKE(TRSP_IMAGE up, TRSP_IMAGE left, TRSP_IMAGE right, TRSP_IMAGE down, HDW mode) :head(up, left, right, down, 0, 0), mod(mode) {
 	snake.reserve(1000000);
 	length = 5;
 	speed = 3;
 	BODY body[4];
 
 	for (int i = 0; i < 4; i++) {
-		body[i] = BODY(i+1,- SNAKE_BODY::distance * (i+1),0);
+		body[i] = BODY(i + 1, -SNAKE_BODY::distance * (i + 1), 0);
 		snake.push_back(body[i]);
 	}
-	history.push_back(std::make_pair(head.dir, body[3].xy));
-	for (auto x = snake.begin(); x != snake.end();x++) {
+	history.push_back(std::make_pair(head.dir, 0));
+	for (auto x = snake.begin(); x != snake.end(); x++) {
 		x->now = 0;
 	}
 }
 
 void SNAKE::drawsnake() {
 	auto i = snake.end();//迭代器
-	do{
+	do {
 		i--;
 		i->putbody(mod);
 	} while (i != snake.begin());
 	head.puthead();
 }
 
+direct insertdir(direct dir) {
+	direct n_dir;
+	switch (dir) {
+	case UP:
+		n_dir = DOWN;
+		break;
+	case DOWN:
+		n_dir = UP;
+		break;
+	case LEFT:
+		n_dir = RIGHT;
+		break;
+	case RIGHT:
+		n_dir = LEFT;
+		break;
+	}
+	return n_dir;
+}
+
 void SNAKE::turn(direct dir) {
 	head.turn(dir);
 	switch (dir) {
 	case UP:
-		history.push_back(std::make_pair(UP, head.xy));//记录下转头的方向和坐标
+		history.push_back(std::make_pair(UP, 0));//记录下转头的方向,让距离为0
 		break;
 	case DOWN:
-		history.push_back(std::make_pair(DOWN, head.xy));
+		history.push_back(std::make_pair(DOWN, 0));
 		break;
 	case RIGHT:
-		history.push_back(std::make_pair(RIGHT, head.xy));
+		history.push_back(std::make_pair(RIGHT, 0));
 		break;
 	case LEFT:
-		history.push_back(std::make_pair(LEFT, head.xy));
+		history.push_back(std::make_pair(LEFT, 0));
 	}
 }
 
 void SNAKE::move() {
-	switch (head.dir) {
-	case UP:
-		head.xy.y += speed;
-		break;
-	case DOWN:
-		head.xy.y -= speed;
-		break;
-	case RIGHT:
-		head.xy.x += speed;
-		break;
-	case LEFT:
-		head.xy.x -= speed;
-		break;
-	}
-	if (head.xy.x > COL / 2) {
-		head.xy.x -= COL;
-		history.push_back(std::make_pair(RIGHT, head.xy));
-	}
-	else if (head.xy.x < -COL / 2) {
-		head.xy.x += COL;
-		history.push_back(std::make_pair(LEFT, head.xy));
-	}
-	if (head.xy.y > RAW / 2) {
-		head.xy.y -= RAW;
-		history.push_back(std::make_pair(UP, head.xy));
-	}
-	else if (head.xy.y < -RAW / 2) {
-		head.xy.y += RAW;
-		history.push_back(std::make_pair(DOWN, head.xy));
-	}
+	//移动头
+	head.xy = move1(head.xy, head.dir, speed);
+	history[history.size() - 1].second += speed;
 	head.LB.x = head.xy.x - head.size / 2;
 	head.LB.y = head.xy.y - head.size / 2;
-	auto i = snake.begin();
-	while (i != snake.end()) {//迭代移动每一个身体
-		int p = speed;
-		A:
-		auto x = history.begin()+i->now;
-		x++;
-		if (x == history.end()) {//没有下一个节点
-			switch (history[i->now].first) {
-			case RIGHT:
-				i->xy.x += p;
-				break;
-			case LEFT:
-				i->xy.x -= p;
-				break;
-			case UP:
-				i->xy.y += p;
-				break;
-			case DOWN:
-				i->xy.y -= p;
-				break;
-			}
+	//绘制剩余的身体部分
+	auto it1 = history.end() - 1;
+	auto it2 = snake.begin();
+	int dis;
+	POINT now = head.xy;
+	direct n_dir = RIGHT;
+	int rest_dis = it1->second;;
+	dis = SNAKE_BODY::distance;
+	while (it1 != history.begin() && it2 != snake.end()) {
+		n_dir = inversedir(it1->first);
+		int x = dis;
+		if (dis >= rest_dis) {
+			dis -= rest_dis;
+			rest_dis = 0;
 		}
-		else {//有下一个节点
-			int d;
-			switch (history[i->now].first) {
-			case RIGHT:
-				d = i->xy.x < x->second.x ? x->second.x - i->xy.x : COL - (i->xy.x - x->second.x);
-				if (p >= d) {//移动一个速度之后超过节点
-					p -= d;//剩余的距离
-					i->xy.x = x->second.x;//移动到该节点
-					i->now++;
-					goto A;
-				}else
-					i->xy.x += p;
-				break;
-			case LEFT:
-				d = i->xy.x > x->second.x ? i->xy.x - x->second.x : COL - (x->second.x - i->xy.x);
-				if (p>=d) {//移动一个速度之后超过节点
-					p -= d;//剩余的距离
-					i->xy.x = x->second.x;//移动到该节点
-					i->now++;
-					goto A;
-				}
-				else
-					i->xy.x -= p;
-				break;
-			case UP:
-				d = i->xy.y < x->second.y ? x->second.y - i->xy.y : RAW - (i->xy.y - x->second.y);
-				if (p>=d) {//移动一个速度之后超过节点
-					p -= d;//剩余的距离
-					i->xy.y = x->second.y;//移动到该节点
-					i->now++;//移动迭代器到下一个节点
-					goto A;
-				}
-				else
-					i->xy.y += p;
-				break;
-			case DOWN:
-				d = i->xy.y > x->second.y ? i->xy.y - x->second.y : RAW - (x->second.y - i->xy.y);
-				if (p>=d) {//移动一个速度之后超过节点
-					p -= d;//剩余的距离
-					i->xy.y = x->second.y;//移动到该节点
-					i->now++;//移动迭代器到下一个节点
-					goto A;
-				}
-				else
-					i->xy.y -= p;
-			}
+		else {
+			rest_dis -= dis;
+			dis = 0;
 		}
-		if (i->xy.x > COL / 2) {
-			i->xy.x -= COL;
+		now = it2->xy = move1(now, n_dir, x-dis);
+		if (dis == 0) {
+			it2++;
+			dis = SNAKE_BODY::distance;
 		}
-		else if (i->xy.x < -COL / 2)
-			i->xy.x += COL;
-		if (i->xy.y > RAW / 2)
-			i->xy.y -= RAW;
-		else if (i->xy.y < -RAW / 2)
-			i->xy.y += RAW;
-		i++;
+		if (rest_dis == 0) {
+			it1--;
+			 rest_dis = it1->second;
+		}
 	}
-	while (snake[snake.size() - 1].now) {//最后一位也越过了第一个节点
-		history.erase(history.begin());//删除第一个节点
-		for (auto m = snake.begin(); m != snake.end(); m++) {
-			m->now--;
+	A:
+	if (it2 != snake.end()) {//身体没排完,此时it1一定等于history.begin()
+		n_dir = inversedir(it1->first);
+		//直接排列剩余的身体
+		while (it2 != snake.end()) {
+			it2->xy = now = move1(now, n_dir, dis);
+			dis = SNAKE_BODY::distance;
+			it2++;
 		}
+	}
+	else {//所有身体已经排完，删除之后的所有历史记录
+		history.erase(history.begin(), it1);
 	}
 }
 
@@ -315,13 +263,10 @@ int SNAKE::iseaten(vector<APPLE>& apple) {
 }
 
 bool SNAKE::isdead() {
-	for (int i = 1; i < history.size(); i++) {
-		judgeline m;
-		if (i != 1)
-			m = judgeline(history[i - 1].second, history[i].second, history[i-1].first, speed);
-		else
-			m = judgeline((snake.end() - 1)->xy, history[i].second, history[i-1].first, speed);
-		if (m.judge(head.xy))
+	float dis;
+	for (auto it = snake.begin(); it != snake.end(); it++) {
+		dis = sqrt(pow(head.xy.x - it->xy.x, 2) + pow(head.xy.y - it->xy.y, 2));
+		if (dis <= speed)
 			return true;
 	}
 	return false;
@@ -329,17 +274,14 @@ bool SNAKE::isdead() {
 
 APPLE::APPLE(SNAKE s) {
 	bool flag = false;
-	do{
-		xy.x = rand() % (COL - 2*size) - COL / 2;
-		xy.y = rand() % (RAW - 2*size) - RAW / 2;
+	do {
+		xy.x = rand() % (COL - 2 * size) - COL / 2;
+		xy.y = rand() % (RAW - 2 * size) - RAW / 2;
 		int i = 0;
-		for (int i = 1; i < s.history.size(); i++) {
-			judgeline m;
-			if (i != 1)
-				m = judgeline(s.history[i - 1].second, s.history[i].second, s.history[i - 1].first, s.speed);
-			else
-				m = judgeline((s.snake.end() - 1)->getxy(), s.history[i].second, s.history[i - 1].first, s.speed);
-			if (m.judge(xy))
+		float dis;
+		for (auto it = s.snake.begin(); it != s.snake.end(); it++) {
+			dis = sqrt(pow(s.head.getxy().x - it->getxy().x, 2) + pow(s.head.getxy().y - it->getxy().y, 2));
+			if (dis <= s.getspeed())
 				flag = true;
 			else
 				flag = false;
@@ -354,37 +296,47 @@ void APPLE::putapple() {
 
 void APPLE::initialize(TRSP_IMAGE& img) {
 	image = img;
-};
+}
 
-bool judgeline::judge(POINT pos) {
-	if (p1.x == p2.x && p1.y == p2.y) {//单个点不判定
-		return false;//没碰到
-	}
+POINT move1(POINT p, direct dir, int dis) {
 	switch (dir) {
-	case RIGHT:
-		if (p1.x < p2.x && (pos.x>p1.x && pos.x<p2.x) && abs(pos.y - p1.y) < width / 2)
-			return true;
-		else if (p1.x > p2.x && (pos.x>p1.x || pos.x<p2.x) && abs(pos.y - p1.y) < width / 2)
-			return true;
-		break;
-	case LEFT:
-		if (p1.x > p2.x && (pos.x<p1.x && pos.x>p2.x) && abs(pos.y - p1.y) < width / 2)
-			return true;
-		else if (p1.x < p2.x && (pos.x<p1.x || pos.x>p2.x) && abs(pos.y - p1.y) < width / 2)
-			return true;
-		break;
 	case UP:
-		if (p1.y < p2.y && (pos.y>p1.y && pos.y<p2.y) && abs(pos.x - p1.x) < width / 2)
-			return true;
-		else if (p1.y > p2.y && (pos.y>p1.y || pos.y<p2.y) && abs(pos.x - p1.x) < width / 2)
-			return true;
+		p.y += dis;
 		break;
 	case DOWN:
-		if (p1.y > p2.y && (pos.y<p1.y && pos.y>p2.y) && abs(pos.x - p1.x) < width / 2)
-			return true;
-		else if (p1.y < p2.y && (pos.y<p1.y || pos.y>p2.y) && abs(pos.x - p1.x) < width / 2)
-			return true;
+		p.y -= dis;
+		break;
+	case RIGHT:
+		p.x += dis;
+		break;
+	case LEFT:
+		p.x -= dis;
 		break;
 	}
-	return false;
+	if (p.x > COL / 2) {
+		p.x -= COL;
+	}
+	else if (p.x < -COL / 2) {
+		p.x += COL;
+	}
+	if (p.y > RAW / 2) {
+		p.y -= RAW;
+	}
+	else if (p.y < -RAW / 2) {
+		p.y += RAW;
+	}
+	return p;
+}
+
+direct inversedir(direct dir) {
+	switch (dir) {
+	case UP:
+		return DOWN;
+	case DOWN:
+		return UP;
+	case LEFT:
+		return RIGHT;
+	case RIGHT:
+		return LEFT;
+	}
 }

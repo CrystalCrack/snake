@@ -38,6 +38,9 @@
     <ClInclude Include="procedure.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="global.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="snake.rc">
