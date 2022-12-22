@@ -97,7 +97,7 @@ HDW menu()
 }
 
 void instru() {
-	Mix_Chunk* chunk = Mix_LoadWAV(".\\music\\pull-out.mp3");
+	Mix_Chunk* chunk = Mix_LoadWAV(".\\musics\\pull-out.mp3");
 	Mix_PlayChannel(-1, chunk, 0);
 	IMAGE inst_o, inst_m;
 	loadimage(&inst_o, L".\\images\\inst_o.jpg",a,b);
@@ -432,11 +432,11 @@ int newgame(HDW mode) {
 			Mix_HaltMusic();
 			if (mode == CHICKEN) {
 				Mix_PlayChannel(-1, NGM, 0);
-				Sleep(3000);
+				Sleep(3200);
 			}
 			else if (mode == NORMAL) {
 				Mix_PlayChannel(-1, fail, 0);
-				Sleep(3000);
+				Sleep(3500);
 			}
 
 			closegraph();
