@@ -315,7 +315,7 @@ APPLE::APPLE(SNAKE s) {
 		int i = 0;
 		float dis;
 		for (auto it = s.snake.begin(); it != s.snake.end(); it++) {
-			dis = sqrt(pow(s.head.getxy().x - it->getxy().x, 2) + pow(s.head.getxy().y - it->getxy().y, 2));
+			dis = sqrt(pow(xy.x - it->getxy().x, 2) + pow(xy.y - it->getxy().y, 2));
 			if (dis <= size/2)
 				flag = true;
 			else

@@ -163,10 +163,9 @@ void instru() {
 		Sleep(1000 / 60 - (clock() - start));
 		start = clock();
 	}
-	for (i = 9.6; i >= 2; i -= 0.4) {
+	for (i = 9.6; x != a - 94; i -= 0.4) {
 		if (x + i * i / 3 > a - 94){
 			x = a - 94;
-		break;
 		}
 		else
 			x += i * i / 3;
