@@ -341,7 +341,7 @@ int newgame(HDW mode) {
 	ExMessage m;
 
 	while (1) {
-		if (clock() - tick > 0) {
+		if (1000 / 60 - (clock() - tick) > 0) {
 			Sleep(1000 / 60 - (clock() - tick));
 		}
 		tick = clock();
@@ -406,6 +406,7 @@ int newgame(HDW mode) {
 							Mix_ResumeMusic();
 							break;
 						}
+						Sleep(1000 / 60);
 					}
 					break;
 				case VK_ESCAPE:
